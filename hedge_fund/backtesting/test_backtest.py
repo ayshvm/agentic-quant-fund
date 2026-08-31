@@ -122,6 +122,25 @@ class TestRunAlpha:
         assert result.equity_curve[0] == 50_000
         assert result.equity_curve[-1] == 50_000 + result.trades[0].pnl
 
+    def test_commission_and_slippage_reduce_pnl(self):
+        prices = _make_prices(100.0, 20, daily_change=0.01)
+        fire = prices[0].time[:10]
+        free = BacktestEngine(per_trade=10_000).run_alpha(
+            FixedAlpha(1.0, {fire}), ["TEST"], MockFDClient(prices),
+            prices[0].time[:10], prices[10].time[:10], holding_days=5,
+        ).trades[0]
+        costly = BacktestEngine(per_trade=10_000, commission_bps=5,
+                                slippage_bps=10).run_alpha(
+            FixedAlpha(1.0, {fire}), ["TEST"], MockFDClient(prices),
+            prices[0].time[:10], prices[10].time[:10], holding_days=5,
+        ).trades[0]
+        assert costly.transaction_cost > 0
+        assert costly.pnl == pytest.approx(free.pnl - costly.transaction_cost, abs=0.01)
+
+    def test_negative_trading_costs_rejected(self):
+        with pytest.raises(ValueError, match="costs"):
+            BacktestEngine(commission_bps=-1)
+
     def test_no_signal_no_trades(self):
         prices = _make_prices(100.0, 20)
         fd = MockFDClient(prices)

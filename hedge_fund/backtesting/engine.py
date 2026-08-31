@@ -46,9 +46,17 @@ class BacktestEngine:
         *,
         capital: float = 100_000.0,
         per_trade: float = 10_000.0,
+        commission_bps: float = 0.0,
+        slippage_bps: float = 0.0,
     ) -> None:
+        if capital <= 0 or per_trade <= 0:
+            raise ValueError("capital and per_trade must be positive")
+        if commission_bps < 0 or slippage_bps < 0:
+            raise ValueError("trading costs cannot be negative")
         self._capital = capital
         self._per_trade = per_trade
+        self._commission_bps = commission_bps
+        self._slippage_bps = slippage_bps
 
     def run_alpha(
         self,
@@ -179,10 +187,15 @@ class BacktestEngine:
 
         if direction == "long":
             pnl = shares * (exit_price - entry_price)
-            return_pct = (exit_price - entry_price) / entry_price
         else:
             pnl = shares * (entry_price - exit_price)
-            return_pct = (entry_price - exit_price) / entry_price
+
+        round_trip_notional = shares * (entry_price + exit_price)
+        transaction_cost = round_trip_notional * (
+            self._commission_bps + self._slippage_bps
+        ) / 10_000
+        pnl -= transaction_cost
+        return_pct = pnl / self._per_trade
 
         return Trade(
             ticker=ticker,
@@ -193,6 +206,7 @@ class BacktestEngine:
             exit_price=exit_price,
             shares=round(shares, 4),
             pnl=round(pnl, 2),
+            transaction_cost=round(transaction_cost, 2),
             return_pct=round(return_pct, 6),
             holding_days=holding_days,
             reasoning=reasoning,

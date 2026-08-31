@@ -18,6 +18,7 @@ class Trade(BaseModel):
     exit_price: float
     shares: float
     pnl: float                        # dollar profit/loss
+    transaction_cost: float = 0.0     # round-trip commissions + slippage
     return_pct: float                 # percentage return (signed)
     holding_days: int                 # trading days held
     reasoning: str | None = None      # why the alpha model opened this (from the Signal)
