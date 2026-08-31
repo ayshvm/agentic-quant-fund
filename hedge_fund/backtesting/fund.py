@@ -50,6 +50,8 @@ class FundBacktestMetrics(BaseModel):
     tracking_error_pct: float
     information_ratio: float
     calmar_ratio: float | None
+    beta: float
+    alpha_pct: float
     n_cycles: int
     n_orders: int
 
@@ -205,6 +207,15 @@ def _metrics(
         float(active_returns.mean()) * periods / tracking_error
         if tracking_error > 0 else 0.0
     )
+    benchmark_variance = (
+        float(benchmark_returns.var(ddof=1)) if len(benchmark_returns) > 1 else 0.0
+    )
+    beta = (
+        float(np.cov(returns, benchmark_returns, ddof=1)[0, 1])
+        / benchmark_variance
+        if benchmark_variance > 0 else 0.0
+    )
+    alpha = (float(returns.mean()) - beta * float(benchmark_returns.mean())) * periods
 
     peak = curve[0]
     max_dd = 0.0
@@ -229,6 +240,8 @@ def _metrics(
         tracking_error_pct=round(tracking_error, 6),
         information_ratio=round(information_ratio, 4),
         calmar_ratio=round(annualized / max_dd, 4) if max_dd > 0 else None,
+        beta=round(beta, 4),
+        alpha_pct=round(alpha, 6),
         n_cycles=len(nav),
         n_orders=sum(len(r.orders) for r in records),
     )

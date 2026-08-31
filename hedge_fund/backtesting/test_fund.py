@@ -133,6 +133,8 @@ def test_happy_path_hand_computed():
     assert m.annualized_volatility_pct > 0
     assert m.tracking_error_pct > 0
     assert m.calmar_ratio is not None
+    assert isinstance(m.beta, float)
+    assert isinstance(m.alpha_pct, float)
     assert m.n_cycles == 3
 
 
