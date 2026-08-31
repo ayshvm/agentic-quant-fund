@@ -61,8 +61,8 @@ def main() -> None:
     apply_credentials()
     ensure_mandates_dir()
     parser = argparse.ArgumentParser(
-        prog="aihf",
-        description="Run the AI hedge fund. No arguments: launch the "
+        prog="aqf",
+        description="Run Agentic Quant Fund. No arguments: launch the "
         "interactive app. With a mandate YAML: run one cycle and print the "
         "record.",
     )

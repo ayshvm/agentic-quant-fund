@@ -1,98 +1,66 @@
-# AI Hedge Fund
+# Agentic Quant Fund
 
-This is a proof of concept for an AI-powered hedge fund. The goal of this project is to explore the use of AI to make trading decisions. This project is for **educational** purposes only and is not intended for real trading or investment.
+An auditable research lab for composing AI and quantitative alpha models,
+turning their signals into risk-controlled portfolios, and backtesting the
+result from the terminal.
 
-> **🚧 The project is evolving.** We're rebuilding it into a persistent, always-on AI hedge fund — a *fund* as a first-class entity you can backtest, paper-trade, and (opt-in) run live, with the investor agents reimagined as pluggable, backtestable "alpha models." Read the **[Vision →](VISION.md)** and the **[Roadmap →](ROADMAP.md)**.
+> Educational and research software only. It is not investment advice and is
+> not intended for live trading.
 
-Note: the system does not actually make any trades.
+## What is different
 
-[![Twitter Follow](https://img.shields.io/twitter/follow/virattt?style=social)](https://twitter.com/virattt)
+This derivative adds configurable research workspaces, strict ticker input
+validation, net- and short-exposure controls, realistic commission/slippage
+modeling, richer trade diagnostics, institutional risk-adjusted metrics,
+mandate validation, date-window safety checks, and automated CI.
 
-## Disclaimer
+The engine keeps a clear boundary: agents form views, deterministic portfolio
+and risk code decides exposure, and every cycle produces an auditable record.
 
-This project is for **educational and research purposes only**.
+## Install
 
-- Not intended for real trading or investment
-- No investment advice or guarantees provided
-- Creator assumes no liability for financial losses
-- Consult a financial advisor for investment decisions
-- Past performance does not indicate future results
-
-By using this software, you agree to use it solely for learning purposes.
-
-## How to Install
-
-```bash
-pipx install aihf
-```
-
-(or `uv tool install aihf`, or `pip install aihf` into an environment of your choice)
-
-Then run it from anywhere:
+Requires Python 3.11 or newer and [uv](https://docs.astral.sh/uv/) or Poetry.
 
 ```bash
-aihf
+uvx poetry install
+uvx poetry run aqf
 ```
 
-### API keys
+The legacy `aihf` command remains available for compatibility.
 
-The app asks for keys the first time it needs them and saves them to `~/.hedge-fund/.env` — nothing to configure up front. It needs:
+## Configure
 
-- A [Financial Datasets](https://financialdatasets.ai) API key, for prices, fundamentals, and earnings.
-- One LLM API key for the LLM-powered alpha models. Supported providers: Anthropic, OpenAI, DeepSeek, Google, xAI, Kimi.
-
-Keys exported in your shell always win over the saved file.
-
-## How to Run
-
-### Interactive app
+On first use, credentials and cached data are stored under `~/.hedge-fund`.
+Set `AGENTIC_QUANT_HOME` to isolate the workspace:
 
 ```bash
-aihf
+export AGENTIC_QUANT_HOME="$PWD/.aqf-data"
 ```
 
-With no arguments, this launches the interactive terminal app. Build a fund — pick stocks, strategies, rebalance cadence — or backtest a saved fund and watch its equity curve draw against its benchmark. Funds you build are saved as mandate files in `~/.hedge-fund/mandates/`.
+You need a Financial Datasets API key and one supported LLM provider key for
+LLM-powered models. Quant-only strategies do not require an LLM key.
 
-### Non-interactive
-
-Run one fund cycle from a mandate file. The full cycle record prints to stdout as JSON; a short human summary goes to stderr:
+## Run a mandate
 
 ```bash
-aihf ~/.hedge-fund/mandates/example.yaml --tickers AAPL,MSFT
+uvx poetry run aqf hedge_fund/fund/example.yaml --validate
+uvx poetry run aqf hedge_fund/fund/example.yaml --tickers AAPL,MSFT
+uvx poetry run aqf hedge_fund/fund/example.yaml --tickers AAPL,MSFT --backtest \
+  --start 2024-01-01 --date 2025-01-01 --out result.json
 ```
 
-Backtest the mandate over history at its rebalance cadence:
-
-```bash
-aihf ~/.hedge-fund/mandates/example.yaml --tickers AAPL,MSFT --backtest
-```
-
-A mandate is the desk — strategies, staff, risk, capital, cadence — and never names tickers; `--tickers` says what to point it at for this run.
+Use `commission_bps` and `slippage_bps` with `BacktestEngine` when evaluating
+an individual alpha model. Mandates may optionally set `max_net_exposure` and
+`max_short_exposure` in addition to position and gross limits.
 
 ## Development
 
 ```bash
-git clone https://github.com/virattt/ai-hedge-fund.git
-cd ai-hedge-fund
-poetry install
-poetry run aihf
-poetry run pytest hedge_fund
+git clone https://github.com/ayshvm/agentic-quant-fund.git
+cd agentic-quant-fund
+uvx poetry install
+uvx poetry run pytest hedge_fund -q
 ```
 
-## How to Contribute
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-**Important**: Please keep your pull requests small and focused. This will make it easier to review and merge.
-
-## Feature Requests
-
-If you have a feature request, please open an [issue](https://github.com/virattt/ai-hedge-fund/issues) and make sure it is tagged with `enhancement`.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+See [NOTICE.md](NOTICE.md) for upstream attribution. The original MIT license
+and copyright notice are preserved in [LICENSE](LICENSE).

@@ -2080,7 +2080,7 @@ _ANSI_THEME = TerminalTheme(
 class HedgeFundApp(App):
     """The v2 terminal app. One screen stack: Home → Builder / Backtest."""
 
-    TITLE = "AI Hedge Fund"
+    TITLE = "Agentic Quant Fund"
     SUB_TITLE = f"v{VERSION}"
     CSS_PATH = "app.tcss"
     ansi_theme_dark = _ANSI_THEME

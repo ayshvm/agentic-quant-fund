@@ -151,7 +151,7 @@ def normalize_universe(tickers: list[str]) -> list[str]:
     universe: list[str] = []
     for ticker in tickers:
         upper = ticker.strip().upper()
-        if upper and not re.fullmatch(r"[A-Z0-9][A-Z0-9.\-^]{0,14}", upper):
+        if upper and not re.fullmatch(r"\^?[A-Z0-9][A-Z0-9.\-]{0,14}", upper):
             raise ValueError(f"invalid ticker symbol: {ticker!r}")
         if upper and upper not in universe:
             universe.append(upper)
