@@ -93,6 +93,7 @@ def run_cycle(
         blend = blend_signals(
             signals, strategy.model_weights, strategy.blend.gross_target,
             market_neutral=strategy.blend.market_neutral,
+            min_conviction=strategy.blend.min_conviction,
         )
         slice_ = strategy.weight / total_slice
         for ticker, weight in blend.weights.items():

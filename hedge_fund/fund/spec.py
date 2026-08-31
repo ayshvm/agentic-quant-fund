@@ -64,6 +64,10 @@ class BlendPolicy(BaseModel):
         "the best-liked names relative to the rest, short the least-liked — a "
         "dollar-neutral sleeve",
     )
+    min_conviction: float = Field(
+        default=0.0, ge=0, le=1,
+        description="ignore blended views weaker than this absolute conviction",
+    )
 
 
 class StrategySpec(BaseModel):

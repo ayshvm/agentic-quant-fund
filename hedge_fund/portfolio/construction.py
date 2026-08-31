@@ -31,6 +31,7 @@ def blend_signals(
     model_weights: dict[str, float],
     gross_target: float,
     market_neutral: bool = False,
+    min_conviction: float = 0.0,
 ) -> BlendResult:
     """Blend model signals into target weights.
 
@@ -72,11 +73,24 @@ def blend_signals(
         t: (weighted_sum[t] / weight_total[t]) if weight_total.get(t) else 0.0
         for t in tickers
     }
+    scaled = {
+        ticker: conviction if abs(conviction) >= min_conviction else 0.0
+        for ticker, conviction in convictions.items()
+    }
 
-    scaled = convictions
     if market_neutral and tickers:
-        mean = sum(convictions.values()) / len(convictions)
-        scaled = {t: c - mean for t, c in convictions.items()}
+        active_tickers = [
+            ticker for ticker, conviction in convictions.items()
+            if abs(conviction) >= min_conviction
+        ]
+        mean = (
+            sum(convictions[ticker] for ticker in active_tickers) / len(active_tickers)
+            if active_tickers else 0.0
+        )
+        scaled = {
+            ticker: (convictions[ticker] - mean if ticker in active_tickers else 0.0)
+            for ticker in tickers
+        }
 
     # Threshold, not == 0: demeaning identical convictions leaves ~1e-16
     # residue, and dividing by it would normalize noise into a full book.

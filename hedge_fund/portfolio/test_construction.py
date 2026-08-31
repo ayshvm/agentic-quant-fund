@@ -74,3 +74,11 @@ def test_all_abstain_yields_flat_book():
     result = blend_signals(signals, {"a": 1.0, "b": 1.0}, gross_target=1.0)
     assert result.convictions == {"AAPL": 0.0}
     assert result.weights == {"AAPL": 0.0}
+
+
+def test_minimum_conviction_keeps_weak_views_in_audit_but_not_book():
+    signals = [_sig("a", "AAPL", 0.1), _sig("a", "MSFT", 0.6)]
+    result = blend_signals(signals, {"a": 1.0}, gross_target=1.0,
+                           min_conviction=0.25)
+    assert result.convictions == {"AAPL": 0.1, "MSFT": 0.6}
+    assert result.weights == {"AAPL": 0.0, "MSFT": 1.0}
