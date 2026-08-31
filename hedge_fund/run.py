@@ -87,6 +87,18 @@ def write_json_output(path: str | Path, payload: str) -> Path:
     return destination
 
 
+def load_universe_inputs(tickers: str | None, tickers_file: str | Path | None) -> list[str]:
+    """Combine inline and file-based symbols into one normalized universe."""
+    raw: list[str] = []
+    if tickers:
+        raw.extend(tickers.replace(",", " ").split())
+    if tickers_file:
+        for line in Path(tickers_file).expanduser().read_text().splitlines():
+            content = line.split("#", 1)[0]
+            raw.extend(content.replace(",", " ").split())
+    return normalize_universe(raw)
+
+
 def main() -> None:
     apply_credentials()
     ensure_mandates_dir()
@@ -107,6 +119,10 @@ def main() -> None:
         help="what to trade this run, comma or space separated, e.g. "
         "AAPL,MSFT,NVDA — required with a mandate (a fund carries no "
         "watchlist; the universe is a run-time input)",
+    )
+    parser.add_argument(
+        "--tickers-file",
+        help="text file of comma-, space-, or newline-separated symbols; # comments allowed",
     )
     parser.add_argument(
         "--date",
@@ -158,9 +174,12 @@ def main() -> None:
         print(spec.model_dump_json(indent=2))
         return
 
-    if not args.tickers:
-        parser.error("--tickers is required with a mandate, e.g. --tickers AAPL,MSFT")
-    universe = normalize_universe(args.tickers.replace(",", " ").split())
+    if not args.tickers and not args.tickers_file:
+        parser.error("--tickers or --tickers-file is required with a mandate")
+    try:
+        universe = load_universe_inputs(args.tickers, args.tickers_file)
+    except (OSError, ValueError) as exc:
+        parser.error(str(exc))
 
     console = Console(stderr=True)  # status + summary on stderr; stdout stays pure JSON
     fund = Fund(spec)
