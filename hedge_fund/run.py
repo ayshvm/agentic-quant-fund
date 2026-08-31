@@ -45,6 +45,18 @@ from hedge_fund.tui.keys import apply_credentials
 from hedge_fund.tui.shared import _BACKTEST_WEEKS
 
 
+def validate_date_range(end: str, start: str | None = None) -> tuple[_date, _date | None]:
+    """Parse CLI dates early and reject inverted research windows."""
+    try:
+        end_date = _date.fromisoformat(end)
+        start_date = _date.fromisoformat(start) if start else None
+    except ValueError as exc:
+        raise ValueError("dates must use YYYY-MM-DD format") from exc
+    if start_date and start_date > end_date:
+        raise ValueError("--start must be on or before --date")
+    return end_date, start_date
+
+
 def main() -> None:
     apply_credentials()
     ensure_mandates_dir()
@@ -87,7 +99,16 @@ def main() -> None:
         "ignore it",
     )
     parser.add_argument("--out", help="also write the record JSON to this file")
+    parser.add_argument(
+        "--validate", action="store_true",
+        help="validate the mandate and print its normalized JSON without running it",
+    )
     args = parser.parse_args()
+
+    try:
+        end_date, start_date = validate_date_range(args.date, args.start)
+    except ValueError as exc:
+        parser.error(str(exc))
 
     if args.model:
         os.environ["HEDGE_FUND_LLM_MODEL"] = args.model
@@ -100,17 +121,21 @@ def main() -> None:
         HedgeFundApp().run()
         return
 
+    spec = load_spec(args.mandate)
+    if args.validate:
+        print(spec.model_dump_json(indent=2))
+        return
+
     if not args.tickers:
         parser.error("--tickers is required with a mandate, e.g. --tickers AAPL,MSFT")
     universe = normalize_universe(args.tickers.replace(",", " ").split())
 
     console = Console(stderr=True)  # status + summary on stderr; stdout stays pure JSON
-    spec = load_spec(args.mandate)
     fund = Fund(spec)
 
     if args.backtest:
         start = args.start or (
-            _date.fromisoformat(args.date) - timedelta(weeks=_BACKTEST_WEEKS)
+            end_date - timedelta(weeks=_BACKTEST_WEEKS)
         ).isoformat()
         with FDClient() as raw:
             fd = CachedDataClient(raw)
