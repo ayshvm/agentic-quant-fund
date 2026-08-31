@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "aihf"
-version = "2.2.0"
-description = "An AI-powered hedge fund: LLM investor agents and quant alpha models you can build, backtest, and run from your terminal"
-authors = ["Virat Singh <virat.dot@gmail.com>"]
+name = "agentic-quant-fund"
+version = "0.1.0"
+description = "An agentic quantitative research lab for composing, testing, and auditing multi-model investment strategies"
+authors = ["ayshvm"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/virattt/ai-hedge-fund"
-repository = "https://github.com/virattt/ai-hedge-fund"
+homepage = "https://github.com/ayshvm/agentic-quant-fund"
+repository = "https://github.com/ayshvm/agentic-quant-fund"
 keywords = ["ai", "hedge-fund", "trading", "llm", "backtesting", "agents"]
 packages = [
     { include = "hedge_fund", from = "." }
@@ -35,6 +35,7 @@ pyyaml = "^6.0.3"
 textual = "^8.2.8"
 
 [tool.poetry.scripts]
+aqf = "hedge_fund.run:main"
 aihf = "hedge_fund.run:main"
 
 [tool.poetry.group.dev.dependencies]

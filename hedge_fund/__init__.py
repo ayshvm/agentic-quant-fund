@@ -1,4 +1,4 @@
-"""AI Hedge Fund v2 — quantitative trading stack.
+"""Agentic Quant Fund — an auditable quantitative research stack.
 
 A clean-room rebuild focused on quant fundamentals:
 data pipelines, event studies, backtesting, validation,
