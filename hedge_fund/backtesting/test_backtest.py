@@ -200,6 +200,18 @@ class TestMetrics:
         assert result.metrics.n_trades == 2
         assert result.metrics.n_long == 2
         assert result.metrics.win_rate == 0.5
+        assert result.metrics.profit_factor is not None
+        assert result.metrics.avg_win_pct > 0
+        assert result.metrics.avg_loss_pct < 0
+
+    def test_metrics_report_total_transaction_cost(self):
+        prices = _make_prices(100.0, 20)
+        fire = prices[0].time[:10]
+        result = BacktestEngine(commission_bps=10).run_alpha(
+            FixedAlpha(1.0, {fire}), ["TEST"], MockFDClient(prices),
+            prices[0].time[:10], prices[10].time[:10], holding_days=5,
+        )
+        assert result.metrics.total_transaction_cost == result.trades[0].transaction_cost
 
 
 # ---------------------------------------------------------------------------

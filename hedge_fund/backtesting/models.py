@@ -38,6 +38,10 @@ class PerformanceMetrics(BaseModel):
     n_short: int
     avg_return_pct: float
     avg_holding_days: float
+    profit_factor: float | None       # gross profits / gross losses; None if no losses
+    avg_win_pct: float
+    avg_loss_pct: float
+    total_transaction_cost: float
 
 
 class BacktestResult(BaseModel):
