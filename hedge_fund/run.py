@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import tempfile
 from datetime import date as _date
 from datetime import timedelta
 from importlib.metadata import PackageNotFoundError, version
@@ -64,6 +65,26 @@ def package_version() -> str:
         return version("agentic-quant-fund")
     except PackageNotFoundError:
         return "dev"
+
+
+def write_json_output(path: str | Path, payload: str) -> Path:
+    """Atomically write JSON output, creating parent directories as needed."""
+    destination = Path(path).expanduser()
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=destination.parent,
+            prefix=f".{destination.name}.", delete=False,
+        ) as handle:
+            handle.write(payload)
+            handle.write("\n")
+            temporary = Path(handle.name)
+        os.replace(temporary, destination)
+    finally:
+        if temporary is not None and temporary.exists():
+            temporary.unlink()
+    return destination
 
 
 def main() -> None:
@@ -159,7 +180,7 @@ def main() -> None:
                 result = backtest_fund(fund, start, args.date, fd, universe)
         print(result.model_dump_json(indent=2))
         if args.out:
-            Path(args.out).write_text(result.model_dump_json(indent=2))
+            write_json_output(args.out, result.model_dump_json(indent=2))
         m = result.metrics
         console.print(
             f"[bold]{spec.name}[/] {result.start} → {result.end}  ·  "
@@ -184,7 +205,7 @@ def main() -> None:
 
     print(record.model_dump_json(indent=2))
     if args.out:
-        Path(args.out).write_text(record.model_dump_json(indent=2))
+        write_json_output(args.out, record.model_dump_json(indent=2))
 
     for sr in record.strategies:
         abstained = sum(1 for s in sr.signals if s.metadata.get("abstained") is True)
