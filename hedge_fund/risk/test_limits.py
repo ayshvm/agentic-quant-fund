@@ -83,3 +83,11 @@ def test_short_exposure_cap_scales_only_shorts():
     result = apply_limits({"LONG": 0.4, "S1": -0.4, "S2": -0.2}, limits)
     assert result.weights == pytest.approx({"LONG": 0.4, "S1": -0.2, "S2": -0.1})
     assert result.clamps[-1].limit == "max_short_exposure"
+
+
+def test_long_exposure_cap_scales_only_longs():
+    limits = RiskLimits(max_position_pct=1, max_gross_exposure=3,
+                        max_long_exposure=0.45)
+    result = apply_limits({"L1": 0.6, "L2": 0.3, "SHORT": -0.2}, limits)
+    assert result.weights == pytest.approx({"L1": 0.3, "L2": 0.15, "SHORT": -0.2})
+    assert result.clamps[-1].limit == "max_long_exposure"

@@ -36,6 +36,10 @@ class RiskLimits(BaseModel):
         default=None, ge=0,
         description="optional cap on the sum of absolute short weights",
     )
+    max_long_exposure: float | None = Field(
+        default=None, ge=0,
+        description="optional cap on the sum of long weights",
+    )
 
 
 class ClampEvent(BaseModel):
@@ -44,6 +48,7 @@ class ClampEvent(BaseModel):
     limit: Literal[
         "max_position_pct", "max_gross_exposure", "max_net_exposure",
         "max_short_exposure",
+        "max_long_exposure",
     ]
     ticker: str | None = None  # None for the portfolio-level gross clamp
     before: float
@@ -88,6 +93,15 @@ def apply_limits(weights: dict[str, float], limits: RiskLimits) -> RiskResult:
         clamped = {t: w * scale for t, w in clamped.items()}
         clamps.append(ClampEvent(
             limit="max_gross_exposure", before=gross, after=limits.max_gross_exposure,
+        ))
+
+    long_gross = sum(w for w in clamped.values() if w > 0)
+    if limits.max_long_exposure is not None and long_gross > limits.max_long_exposure:
+        scale = limits.max_long_exposure / long_gross
+        clamped = {t: (w * scale if w > 0 else w) for t, w in clamped.items()}
+        clamps.append(ClampEvent(
+            limit="max_long_exposure", before=long_gross,
+            after=limits.max_long_exposure,
         ))
 
     short_gross = sum(-w for w in clamped.values() if w < 0)
