@@ -108,10 +108,13 @@ def test_legacy_universe_key_is_dropped_on_load(tmp_path):
 
 def test_normalize_universe():
     assert normalize_universe(["aapl", " msft ", "AAPL"]) == ["AAPL", "MSFT"]
+    assert normalize_universe(["brk.b", "btc-usd", "^gspc"]) == ["BRK.B", "BTC-USD", "^GSPC"]
     with pytest.raises(ValueError, match="universe is empty"):
         normalize_universe([])
     with pytest.raises(ValueError, match="universe is empty"):
         normalize_universe(["  "])
+    with pytest.raises(ValueError, match="invalid ticker"):
+        normalize_universe(["AAPL,$(bad)"])
 
 
 def test_duplicate_strategy_name_rejected():
