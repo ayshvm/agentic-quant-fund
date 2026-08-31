@@ -44,6 +44,9 @@ class PerformanceMetrics(BaseModel):
     total_transaction_cost: float
     max_consecutive_wins: int
     max_consecutive_losses: int
+    expectancy: float                # average dollar P&L per completed trade
+    payoff_ratio: float | None       # average win / absolute average loss
+    recovery_factor: float | None    # total return / max drawdown
 
 
 class BacktestResult(BaseModel):

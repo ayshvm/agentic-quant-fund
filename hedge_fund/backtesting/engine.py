@@ -294,6 +294,8 @@ class BacktestEngine:
         losing_returns = [r for r in returns if r < 0]
         gross_profit = sum(t.pnl for t in trades if t.pnl > 0)
         gross_loss = -sum(t.pnl for t in trades if t.pnl < 0)
+        avg_win = sum(winning_returns) / len(winning_returns) if winning_returns else 0.0
+        avg_loss = sum(losing_returns) / len(losing_returns) if losing_returns else 0.0
 
         return PerformanceMetrics(
             total_return_pct=round(total_return_pct, 6),
@@ -307,13 +309,14 @@ class BacktestEngine:
             avg_return_pct=round(avg, 6),
             avg_holding_days=round(sum(t.holding_days for t in trades) / n, 1),
             profit_factor=round(gross_profit / gross_loss, 4) if gross_loss else None,
-            avg_win_pct=round(sum(winning_returns) / len(winning_returns), 6)
-            if winning_returns else 0.0,
-            avg_loss_pct=round(sum(losing_returns) / len(losing_returns), 6)
-            if losing_returns else 0.0,
+            avg_win_pct=round(avg_win, 6),
+            avg_loss_pct=round(avg_loss, 6),
             total_transaction_cost=round(sum(t.transaction_cost for t in trades), 2),
             max_consecutive_wins=_max_streak(returns, winning=True),
             max_consecutive_losses=_max_streak(returns, winning=False),
+            expectancy=round(sum(t.pnl for t in trades) / n, 2),
+            payoff_ratio=round(avg_win / abs(avg_loss), 4) if avg_loss else None,
+            recovery_factor=round(total_return_pct / max_dd, 4) if max_dd else None,
         )
 
 

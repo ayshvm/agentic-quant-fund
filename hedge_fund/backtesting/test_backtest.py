@@ -205,6 +205,11 @@ class TestMetrics:
         assert result.metrics.avg_loss_pct < 0
         assert result.metrics.max_consecutive_wins == 1
         assert result.metrics.max_consecutive_losses == 1
+        assert result.metrics.payoff_ratio is not None
+        assert result.metrics.expectancy == pytest.approx(
+            sum(trade.pnl for trade in result.trades) / 2, abs=0.01
+        )
+        assert result.metrics.recovery_factor is not None
 
     def test_metrics_report_total_transaction_cost(self):
         prices = _make_prices(100.0, 20)
