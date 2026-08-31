@@ -11,10 +11,23 @@ anchors its paths here, and nothing here may import them back.
 
 from __future__ import annotations
 
+import os
 import shutil
 from pathlib import Path
 
-USER_DIR = Path.home() / ".hedge-fund"
+
+def resolve_user_dir(value: str | None = None) -> Path:
+    """Resolve the application data directory.
+
+    ``AGENTIC_QUANT_HOME`` makes runs isolated and reproducible in CI,
+    containers, and research sandboxes. Existing installs keep using the
+    legacy directory when the variable is unset.
+    """
+    configured = value if value is not None else os.environ.get("AGENTIC_QUANT_HOME")
+    return Path(configured).expanduser() if configured else Path.home() / ".hedge-fund"
+
+
+USER_DIR = resolve_user_dir()
 MANDATES_DIR = USER_DIR / "mandates"
 CACHE_DIR = USER_DIR / "cache"
 ENV_PATH = USER_DIR / ".env"
