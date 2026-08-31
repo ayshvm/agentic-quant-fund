@@ -1,6 +1,6 @@
 import pytest
 
-from hedge_fund.run import validate_date_range
+from hedge_fund.run import package_version, validate_date_range
 
 
 def test_validate_date_range_accepts_ordered_iso_dates():
@@ -17,3 +17,7 @@ def test_validate_date_range_rejects_bad_format():
 def test_validate_date_range_rejects_inverted_window():
     with pytest.raises(ValueError, match="on or before"):
         validate_date_range("2025-01-01", "2025-03-01")
+
+
+def test_package_version_is_nonempty():
+    assert package_version()

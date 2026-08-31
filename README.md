@@ -44,6 +44,7 @@ LLM-powered models. Quant-only strategies do not require an LLM key.
 
 ```bash
 uvx poetry run aqf hedge_fund/fund/example.yaml --validate
+uvx poetry run aqf --version
 uvx poetry run aqf hedge_fund/fund/example.yaml --tickers AAPL,MSFT
 uvx poetry run aqf hedge_fund/fund/example.yaml --tickers AAPL,MSFT --backtest \
   --start 2024-01-01 --date 2025-01-01 --out result.json

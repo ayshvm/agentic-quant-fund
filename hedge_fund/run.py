@@ -31,6 +31,7 @@ import argparse
 import os
 from datetime import date as _date
 from datetime import timedelta
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 from rich.console import Console
@@ -57,6 +58,14 @@ def validate_date_range(end: str, start: str | None = None) -> tuple[_date, _dat
     return end_date, start_date
 
 
+def package_version() -> str:
+    """Return the installed release, with a stable source-checkout fallback."""
+    try:
+        return version("agentic-quant-fund")
+    except PackageNotFoundError:
+        return "dev"
+
+
 def main() -> None:
     apply_credentials()
     ensure_mandates_dir()
@@ -66,6 +75,8 @@ def main() -> None:
         "interactive app. With a mandate YAML: run one cycle and print the "
         "record.",
     )
+    parser.add_argument("--version", action="version",
+                        version=f"%(prog)s {package_version()}")
     parser.add_argument("mandate", nargs="?",
                         help="path to a fund spec YAML, e.g. "
                         "~/.hedge-fund/mandates/example.yaml "
