@@ -60,3 +60,18 @@ def test_clamped_exposure_not_redistributed():
     result = apply_limits({"AAPL": 0.9, "MSFT": 0.05}, LIMITS)
     assert result.weights["AAPL"] == pytest.approx(0.25)
     assert result.weights["MSFT"] == pytest.approx(0.05)  # NOT topped up
+
+
+def test_net_exposure_cap_only_shrinks_dominant_side():
+    limits = RiskLimits(max_position_pct=1, max_gross_exposure=2, max_net_exposure=0.1)
+    result = apply_limits({"LONG": 0.8, "SHORT": -0.2}, limits)
+    assert result.weights == pytest.approx({"LONG": 0.3, "SHORT": -0.2})
+    assert result.clamps[-1].limit == "max_net_exposure"
+    assert sum(result.weights.values()) == pytest.approx(0.1)
+
+
+def test_net_exposure_cap_handles_short_bias():
+    limits = RiskLimits(max_position_pct=1, max_gross_exposure=2, max_net_exposure=0.05)
+    result = apply_limits({"LONG": 0.1, "SHORT": -0.7}, limits)
+    assert result.weights == pytest.approx({"LONG": 0.1, "SHORT": -0.15})
+    assert sum(result.weights.values()) == pytest.approx(-0.05)

@@ -28,12 +28,16 @@ class RiskLimits(BaseModel):
     max_gross_exposure: float = Field(
         gt=0, description="max sum of |weights| across the book (1.0 = unlevered)"
     )
+    max_net_exposure: float | None = Field(
+        default=None, ge=0, le=1.0,
+        description="optional cap on |sum(weights)|; excess stays in cash",
+    )
 
 
 class ClampEvent(BaseModel):
     """One limit firing — recorded so every clamp is explainable."""
 
-    limit: Literal["max_position_pct", "max_gross_exposure"]
+    limit: Literal["max_position_pct", "max_gross_exposure", "max_net_exposure"]
     ticker: str | None = None  # None for the portfolio-level gross clamp
     before: float
     after: float
@@ -77,6 +81,25 @@ def apply_limits(weights: dict[str, float], limits: RiskLimits) -> RiskResult:
         clamped = {t: w * scale for t, w in clamped.items()}
         clamps.append(ClampEvent(
             limit="max_gross_exposure", before=gross, after=limits.max_gross_exposure,
+        ))
+
+    net = sum(clamped.values())
+    if limits.max_net_exposure is not None and abs(net) > limits.max_net_exposure:
+        cap = limits.max_net_exposure
+        if net > 0:
+            positive = sum(w for w in clamped.values() if w > 0)
+            negative = sum(w for w in clamped.values() if w < 0)
+            target_positive = cap - negative
+            scale = target_positive / positive if positive else 0.0
+            clamped = {t: (w * scale if w > 0 else w) for t, w in clamped.items()}
+        else:
+            positive = sum(w for w in clamped.values() if w > 0)
+            negative_abs = sum(-w for w in clamped.values() if w < 0)
+            target_negative_abs = cap + positive
+            scale = target_negative_abs / negative_abs if negative_abs else 0.0
+            clamped = {t: (w * scale if w < 0 else w) for t, w in clamped.items()}
+        clamps.append(ClampEvent(
+            limit="max_net_exposure", before=net, after=sum(clamped.values()),
         ))
 
     return RiskResult(weights=clamped, clamps=clamps)
