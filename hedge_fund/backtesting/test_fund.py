@@ -135,6 +135,8 @@ def test_happy_path_hand_computed():
     assert m.calmar_ratio is not None
     assert isinstance(m.beta, float)
     assert isinstance(m.alpha_pct, float)
+    assert m.value_at_risk_95_pct >= 0
+    assert m.conditional_var_95_pct >= m.value_at_risk_95_pct
     assert m.n_cycles == 3
 
 

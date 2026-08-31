@@ -52,6 +52,8 @@ class FundBacktestMetrics(BaseModel):
     calmar_ratio: float | None
     beta: float
     alpha_pct: float
+    value_at_risk_95_pct: float
+    conditional_var_95_pct: float
     n_cycles: int
     n_orders: int
 
@@ -216,6 +218,10 @@ def _metrics(
         if benchmark_variance > 0 else 0.0
     )
     alpha = (float(returns.mean()) - beta * float(benchmark_returns.mean())) * periods
+    fifth_percentile = float(np.percentile(returns, 5))
+    var_95 = max(0.0, -fifth_percentile)
+    tail = returns[returns <= fifth_percentile]
+    conditional_var_95 = max(0.0, -float(tail.mean())) if len(tail) else var_95
 
     peak = curve[0]
     max_dd = 0.0
@@ -242,6 +248,8 @@ def _metrics(
         calmar_ratio=round(annualized / max_dd, 4) if max_dd > 0 else None,
         beta=round(beta, 4),
         alpha_pct=round(alpha, 6),
+        value_at_risk_95_pct=round(var_95, 6),
+        conditional_var_95_pct=round(conditional_var_95, 6),
         n_cycles=len(nav),
         n_orders=sum(len(r.orders) for r in records),
     )
