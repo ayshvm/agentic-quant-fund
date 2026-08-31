@@ -130,6 +130,9 @@ def test_happy_path_hand_computed():
     assert m.excess_return_pct == pytest.approx(-0.06)
     # Peak 105k -> trough 95k.
     assert m.max_drawdown_pct == pytest.approx(10_000 / 105_000, abs=1e-6)
+    assert m.annualized_volatility_pct > 0
+    assert m.tracking_error_pct > 0
+    assert m.calmar_ratio is not None
     assert m.n_cycles == 3
 
 

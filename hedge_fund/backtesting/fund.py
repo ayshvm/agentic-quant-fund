@@ -42,9 +42,14 @@ class FundBacktestMetrics(BaseModel):
     total_return_pct: float
     annualized_return_pct: float
     sharpe_ratio: float
+    sortino_ratio: float
+    annualized_volatility_pct: float
     max_drawdown_pct: float
     benchmark_return_pct: float
     excess_return_pct: float          # fund total minus benchmark total
+    tracking_error_pct: float
+    information_ratio: float
+    calmar_ratio: float | None
     n_cycles: int
     n_orders: int
 
@@ -180,6 +185,26 @@ def _metrics(
         )
     else:
         sharpe = 0.0
+    periods = _PERIODS_PER_YEAR[cadence]
+    annualized_volatility = (
+        float(returns.std(ddof=1)) * np.sqrt(periods) if len(returns) > 1 else 0.0
+    )
+    downside = returns[returns < 0]
+    downside_deviation = float(np.sqrt(np.mean(np.square(downside)))) if len(downside) else 0.0
+    sortino = (float(returns.mean()) / downside_deviation) * np.sqrt(periods) \
+        if downside_deviation > 0 else 0.0
+
+    benchmark_curve = np.array([capital] + benchmark_nav)
+    benchmark_returns = benchmark_curve[1:] / benchmark_curve[:-1] - 1
+    active_returns = returns - benchmark_returns
+    tracking_error = (
+        float(active_returns.std(ddof=1)) * np.sqrt(periods)
+        if len(active_returns) > 1 else 0.0
+    )
+    information_ratio = (
+        float(active_returns.mean()) * periods / tracking_error
+        if tracking_error > 0 else 0.0
+    )
 
     peak = curve[0]
     max_dd = 0.0
@@ -196,9 +221,14 @@ def _metrics(
         total_return_pct=round(total, 6),
         annualized_return_pct=round(annualized, 6),
         sharpe_ratio=round(float(sharpe), 4),
+        sortino_ratio=round(float(sortino), 4),
+        annualized_volatility_pct=round(annualized_volatility, 6),
         max_drawdown_pct=round(float(max_dd), 6),
         benchmark_return_pct=round(benchmark_return, 6),
         excess_return_pct=round(total - benchmark_return, 6),
+        tracking_error_pct=round(tracking_error, 6),
+        information_ratio=round(information_ratio, 4),
+        calmar_ratio=round(annualized / max_dd, 4) if max_dd > 0 else None,
         n_cycles=len(nav),
         n_orders=sum(len(r.orders) for r in records),
     )
