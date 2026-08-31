@@ -3,6 +3,16 @@
 Later: drawdown controls, volatility-based sizing, correlation caps.
 """
 
-from hedge_fund.risk.limits import ClampEvent, RiskLimits, RiskResult, apply_limits
+from hedge_fund.risk.limits import (
+    ClampEvent,
+    ExposureSummary,
+    RiskLimits,
+    RiskResult,
+    apply_limits,
+    summarize_exposure,
+)
 
-__all__ = ["ClampEvent", "RiskLimits", "RiskResult", "apply_limits"]
+__all__ = [
+    "ClampEvent", "ExposureSummary", "RiskLimits", "RiskResult",
+    "apply_limits", "summarize_exposure",
+]

@@ -62,6 +62,38 @@ class RiskResult(BaseModel):
     clamps: list[ClampEvent]
 
 
+class ExposureSummary(BaseModel):
+    """A compact, serializable view of a target book's exposure."""
+
+    gross: float
+    net: float
+    long: float
+    short: float
+    cash: float
+    largest_position: float
+    effective_positions: float
+
+
+def summarize_exposure(weights: dict[str, float]) -> ExposureSummary:
+    """Summarize book direction, leverage, cash, and concentration."""
+    long = sum(weight for weight in weights.values() if weight > 0)
+    short = sum(-weight for weight in weights.values() if weight < 0)
+    gross = long + short
+    concentration = (
+        sum((abs(weight) / gross) ** 2 for weight in weights.values())
+        if gross else 0.0
+    )
+    return ExposureSummary(
+        gross=round(gross, 10),
+        net=round(long - short, 10),
+        long=round(long, 10),
+        short=round(short, 10),
+        cash=round(max(0.0, 1.0 - gross), 10),
+        largest_position=round(max((abs(w) for w in weights.values()), default=0.0), 10),
+        effective_positions=round(1 / concentration, 4) if concentration else 0.0,
+    )
+
+
 def apply_limits(weights: dict[str, float], limits: RiskLimits) -> RiskResult:
     """Clamp target weights against the fund's hard limits.
 

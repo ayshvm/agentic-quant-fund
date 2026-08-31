@@ -2,7 +2,7 @@
 
 import pytest
 
-from hedge_fund.risk.limits import RiskLimits, apply_limits
+from hedge_fund.risk.limits import RiskLimits, apply_limits, summarize_exposure
 
 LIMITS = RiskLimits(max_position_pct=0.25, max_gross_exposure=1.0)
 
@@ -91,3 +91,21 @@ def test_long_exposure_cap_scales_only_longs():
     result = apply_limits({"L1": 0.6, "L2": 0.3, "SHORT": -0.2}, limits)
     assert result.weights == pytest.approx({"L1": 0.3, "L2": 0.15, "SHORT": -0.2})
     assert result.clamps[-1].limit == "max_long_exposure"
+
+
+def test_exposure_summary_reports_direction_cash_and_concentration():
+    summary = summarize_exposure({"A": 0.3, "B": 0.3, "C": -0.2})
+    assert summary.gross == pytest.approx(0.8)
+    assert summary.net == pytest.approx(0.4)
+    assert summary.long == pytest.approx(0.6)
+    assert summary.short == pytest.approx(0.2)
+    assert summary.cash == pytest.approx(0.2)
+    assert summary.largest_position == pytest.approx(0.3)
+    assert summary.effective_positions == pytest.approx(2.9091)
+
+
+def test_empty_exposure_summary_is_safe():
+    summary = summarize_exposure({})
+    assert summary.gross == 0
+    assert summary.cash == 1
+    assert summary.effective_positions == 0
