@@ -42,6 +42,8 @@ class PerformanceMetrics(BaseModel):
     avg_win_pct: float
     avg_loss_pct: float
     total_transaction_cost: float
+    max_consecutive_wins: int
+    max_consecutive_losses: int
 
 
 class BacktestResult(BaseModel):

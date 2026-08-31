@@ -203,6 +203,8 @@ class TestMetrics:
         assert result.metrics.profit_factor is not None
         assert result.metrics.avg_win_pct > 0
         assert result.metrics.avg_loss_pct < 0
+        assert result.metrics.max_consecutive_wins == 1
+        assert result.metrics.max_consecutive_losses == 1
 
     def test_metrics_report_total_transaction_cost(self):
         prices = _make_prices(100.0, 20)

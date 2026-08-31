@@ -312,6 +312,8 @@ class BacktestEngine:
             avg_loss_pct=round(sum(losing_returns) / len(losing_returns), 6)
             if losing_returns else 0.0,
             total_transaction_cost=round(sum(t.transaction_cost for t in trades), 2),
+            max_consecutive_wins=_max_streak(returns, winning=True),
+            max_consecutive_losses=_max_streak(returns, winning=False),
         )
 
 
@@ -321,3 +323,13 @@ class BacktestEngine:
 
 def _parse_date(s: str) -> date:
     return datetime.strptime(s[:10], "%Y-%m-%d").date()
+
+
+def _max_streak(returns: list[float], *, winning: bool) -> int:
+    """Return the longest uninterrupted winning or losing trade streak."""
+    longest = current = 0
+    for value in returns:
+        matches = value > 0 if winning else value < 0
+        current = current + 1 if matches else 0
+        longest = max(longest, current)
+    return longest
