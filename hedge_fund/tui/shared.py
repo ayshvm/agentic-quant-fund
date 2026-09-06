@@ -41,6 +41,8 @@ DISPLAY_NAMES = {
     "lynch": "Peter Lynch",
     "druckenmiller": "Stanley Druckenmiller",
     "pead": "post-earnings drift",
+    "momentum": "price momentum",
+    "mean_reversion": "mean reversion",
 }
 
 _SHORT_NAMES = {
@@ -50,12 +52,15 @@ _SHORT_NAMES = {
     "lynch": "Lynch",
     "druckenmiller": "Druckenmiller",
     "pead": "PEAD",
+    "momentum": "Momentum",
+    "mean_reversion": "Reversion",
 }
 
 # The LLM the investor agents reason with. Picked once, upfront; make_llm()
 # reads HEDGE_FUND_LLM_MODEL (hedge_fund/llm/client.py) and routes to the right provider, so
 # setting that env var steers every agent instance — the warm roster AND the
-# Fund — with no threading. Quant models (PEAD) carry no LLM and ignore it.
+# Fund — with no threading. Quant models (PEAD, momentum, mean reversion) carry
+# no LLM and ignore it.
 _DEFAULT_MODEL_LABEL = "Opus 5"
 
 # The registry lives in hedge_fund/llm — it is a fact about providers, not about

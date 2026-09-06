@@ -1,0 +1,15 @@
+# Short-term reversal — systematic, price-only, the momentum sleeve's mirror.
+# Fade names that have overshot their own 21-day average: short the stretched,
+# long the beaten-down, and stand aside when RSI says the move is a repricing
+# rather than an overshoot.
+# Edge claimed: days-to-weeks moves driven by liquidity demand and flow
+# pressure snap back before the fundamentals change.
+name: short-term-reversal
+display_name: Short-Term Reversal
+models:
+  - name: mean_reversion
+blend:
+  method: conviction_weighted
+  gross_target: 1.0
+  market_neutral: true
+  min_conviction: 0.15

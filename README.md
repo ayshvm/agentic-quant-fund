@@ -12,7 +12,8 @@ result from the terminal.
 This derivative adds configurable research workspaces, strict ticker input
 validation, net- and short-exposure controls, realistic commission/slippage
 modeling, richer trade diagnostics, institutional risk-adjusted metrics,
-mandate validation, date-window safety checks, and automated CI.
+mandate validation, date-window safety checks, price-based quant alpha models
+(momentum and mean reversion), and automated CI.
 
 The engine keeps a clear boundary: agents form views, deterministic portfolio
 and risk code decides exposure, and every cycle produces an auditable record.
@@ -54,6 +55,34 @@ uvx poetry run aqf hedge_fund/fund/example.yaml --tickers AAPL,MSFT --backtest \
 Use `commission_bps` and `slippage_bps` with `BacktestEngine` when evaluating
 an individual alpha model. Mandates may optionally set `max_net_exposure` and
 `max_short_exposure` in addition to position and gross limits.
+
+## Alpha models
+
+Every model implements the same `AlphaModel` interface and returns a `Signal`
+(a conviction in `[-1, +1]` plus its reasoning), so any of them can be staffed
+into a strategy by name.
+
+| Key | Kind | View |
+|-----|------|------|
+| `momentum` | quant | Risk-adjusted 12-1 momentum: long past winners, short past losers, scaled by the formation window's realized volatility. Skips the most recent month, where the effect reverses. |
+| `mean_reversion` | quant | Short-horizon reversal: fade closes stretched beyond `entry_z` standard deviations of their 21-day average, but only when RSI confirms the move is exhausted. |
+| `pead` | quant | Post-earnings announcement drift: long after a beat, short after a miss, inside a short window after the filing. |
+| `buffett` `munger` `graham` `lynch` `druckenmiller` | LLM agent | Reason over fundamentals in a named investor's voice and emit a conviction plus a thesis. |
+
+Both price-based models are pure math over closes — they backtest with no LLM
+key. The shipped strategy library pairs them into market-neutral sleeves
+(`cross-sectional-momentum` and `short-term-reversal`), and their parameters
+are tunable per mandate:
+
+```yaml
+strategies:
+  - name: cross-sectional-momentum
+    models:
+      - name: momentum
+        params: {lookback_days: 126, skip_days: 21}
+    blend:
+      market_neutral: true
+```
 
 ## Development
 
