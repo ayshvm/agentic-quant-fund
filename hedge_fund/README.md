@@ -72,11 +72,11 @@ Data (point-in-time) → Alpha models → Portfolio → Risk → Execution → L
 | Module | What | Status |
 |--------|------|--------|
 | `data/` | `DataClient` protocol, Financial Datasets client, disk cache | ✅ |
-| `signals/` | `AlphaModel` interface, PEAD, `LLMAgent` + 5 investor personas | ✅ |
+| `signals/` | `AlphaModel` interface, quant models (PEAD, momentum, mean reversion), `LLMAgent` + 5 investor personas | ✅ |
 | `llm/` | LLM provider protocol, Anthropic client, prompt cache | ✅ |
 | `features/` | Point-in-time fundamentals snapshot (more features planned) | ◐ |
 | `fund/` | `FundSpec`/`StrategySpec` — mandates as YAML data — and the `Fund` object | ✅ |
-| `strategies/` | Strategy library (fundamental-ls, deep-value, inflections, earnings-drift) — add yours as a YAML | ✅ |
+| `strategies/` | Strategy library (fundamental-ls, deep-value, inflections, earnings-drift, cross-sectional-momentum, short-term-reversal) — add yours as a YAML | ✅ |
 | `portfolio/` | View blending → target weights (conviction-weighted, optional market-neutral) | ✅ |
 | `risk/` | Hard limits — per-position and gross-exposure clamps | ✅ |
 | `brokers/` | `Broker` protocol + `SimBroker` (paper/live brokers planned) | ◐ |
@@ -112,7 +112,8 @@ Two high-leverage contributions:
 
 - **A new agent or quant model** (code): read `signals/base.py` for the
   `AlphaModel` interface, use `signals/buffett.py` (an agent is just a system
-  prompt) or `signals/pead.py` (quant) as a template, register it, add a test.
+  prompt) or `signals/pead.py` / `signals/momentum.py` (quant) as a template,
+  register it, add a test.
 - **A new strategy** (no code): drop a YAML in `strategies/` bundling existing
   models with a blend policy — the fund builder picks it up automatically.
 

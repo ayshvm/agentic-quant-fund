@@ -1,0 +1,15 @@
+# Cross-sectional momentum — systematic, price-only.
+# Rank the universe by 12-1 risk-adjusted momentum and take the spread: long
+# the strongest trends, short the weakest. Market-neutral because the edge is
+# the *ranking*, not the direction of the market — a long-only version is
+# mostly a bet that stocks go up.
+# Edge claimed: trends persist at 3-12 month horizons and the market prices
+# them in too slowly.
+name: cross-sectional-momentum
+display_name: Cross-Sectional Momentum
+models:
+  - name: momentum
+blend:
+  method: conviction_weighted
+  gross_target: 1.0
+  market_neutral: true
