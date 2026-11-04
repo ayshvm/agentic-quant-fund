@@ -86,7 +86,7 @@ can be backtested and combined — is a great first contribution:
 |------|--------|
 | Risk model — hard caps (pod-level budgets + fund-level limits) | 🚧 (fund-level position + gross caps ship; pod budgets with pods) |
 | Broker protocol — pluggable, mirrors the `DataClient` pattern | ✅ |
-| ↳ Simulated broker (backtest) | ✅ |
+| ↳ Simulated broker (backtest) | ✅ (including configurable Indian equity statutory costs) |
 | ↳ Paper broker | ⬜ |
 | ↳ Live broker (Interactive Brokers / Alpaca) — opt-in plugin, off by default | ⬜ |
 

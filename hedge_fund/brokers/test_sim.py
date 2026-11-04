@@ -3,6 +3,7 @@
 import pytest
 
 from hedge_fund.brokers.models import Order
+from hedge_fund.brokers.costs import IndianEquityCostModel
 from hedge_fund.brokers.sim import SimBroker
 
 
@@ -48,3 +49,20 @@ def test_positions_returns_a_copy():
     broker.place_order(Order(ticker="AAPL", side="buy", quantity=5, price=100.0))
     broker.positions().clear()
     assert broker.positions()["AAPL"].shares == 5
+
+
+def test_indian_delivery_costs_are_charged_and_audited():
+    broker = SimBroker(cash=100_000.0, cost_model=IndianEquityCostModel())
+    fill = broker.place_order(Order(ticker="RELIANCE", side="buy", quantity=100, price=1_000.0))
+
+    assert fill.transaction_cost == pytest.approx(118.935)
+    assert broker.cash() == pytest.approx(100_000.0 - 100_000.0 - 118.935)
+
+
+def test_indian_cost_model_is_side_aware_and_sell_has_dp_charge():
+    model = IndianEquityCostModel()
+    buy = model.calculate(Order(ticker="TCS", side="buy", quantity=1, price=1_000.0))
+    sell = model.calculate(Order(ticker="TCS", side="sell", quantity=1, price=1_000.0))
+
+    assert buy == pytest.approx(1.18935)
+    assert sell == pytest.approx(1.03935 + 15.93)
