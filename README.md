@@ -56,6 +56,20 @@ Use `commission_bps` and `slippage_bps` with `BacktestEngine` when evaluating
 an individual alpha model. Mandates may optionally set `max_net_exposure` and
 `max_short_exposure` in addition to position and gross limits.
 
+For Indian delivery-equity research, use the itemized statutory-cost model in
+the simulated broker. It accounts for STT, exchange transaction charges, SEBI
+turnover fees, buy-side stamp duty, GST, brokerage, and sell-side DP charges;
+each fill records its `transaction_cost`:
+
+```python
+from hedge_fund.brokers import IndianEquityCostModel, SimBroker
+
+broker = SimBroker(cash=1_000_000, cost_model=IndianEquityCostModel())
+```
+
+The defaults are a transparent research baseline, not a broker tariff. Pass
+explicit rates to match the current broker/exchange schedule.
+
 ## Alpha models
 
 Every model implements the same `AlphaModel` interface and returns a `Signal`

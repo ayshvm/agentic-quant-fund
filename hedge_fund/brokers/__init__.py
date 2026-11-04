@@ -4,4 +4,5 @@ from hedge_fund.brokers.models import Fill, Order, Position
 from hedge_fund.brokers.protocol import Broker
 from hedge_fund.brokers.sim import SimBroker
 
-__all__ = ["Broker", "Fill", "Order", "Position", "SimBroker"]
+__all__ = ["Broker", "Fill", "IndianEquityCostModel", "Order", "Position", "SimBroker"]
+from hedge_fund.brokers.costs import IndianEquityCostModel

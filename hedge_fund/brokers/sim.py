@@ -13,15 +13,17 @@ pretends to enforce it.
 
 from __future__ import annotations
 
+from hedge_fund.brokers.costs import IndianEquityCostModel
 from hedge_fund.brokers.models import Fill, Order, Position
 
 
 class SimBroker:
     """In-memory broker: signed positions plus a cash balance."""
 
-    def __init__(self, cash: float) -> None:
+    def __init__(self, cash: float, cost_model=None) -> None:
         self._cash = cash
         self._shares: dict[str, int] = {}
+        self._cost_model = cost_model
 
     def positions(self) -> dict[str, Position]:
         return {
@@ -40,12 +42,15 @@ class SimBroker:
                 "the caller must price every order"
             )
 
+        transaction_cost = (
+            self._cost_model.calculate(order) if self._cost_model is not None else 0.0
+        )
         if order.side == "buy":
             self._shares[order.ticker] = self._shares.get(order.ticker, 0) + order.quantity
-            self._cash -= order.quantity * order.price
+            self._cash -= order.quantity * order.price + transaction_cost
         else:
             self._shares[order.ticker] = self._shares.get(order.ticker, 0) - order.quantity
-            self._cash += order.quantity * order.price
+            self._cash += order.quantity * order.price - transaction_cost
 
         if self._shares[order.ticker] == 0:
             del self._shares[order.ticker]
@@ -55,4 +60,5 @@ class SimBroker:
             side=order.side,
             quantity=order.quantity,
             price=order.price,
+            transaction_cost=transaction_cost,
         )
